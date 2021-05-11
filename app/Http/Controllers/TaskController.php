@@ -2,20 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TaskStoreRequest;
+use App\Http\Requests\TaskUpdateRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use App\Services\TaskService;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    private $task_service;
+
+    public function __construct(TaskService $task_service){
+        $this->task_service = $task_service;
+    }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return TaskResource::collection(auth()->user()->tasks);
+        $tasks = $this->task_service->list(auth()->user(), $request->q ?? '');
+        return TaskResource::collection($tasks);
     }
 
     /**
@@ -24,9 +34,12 @@ class TaskController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TaskStoreRequest $request)
     {
-        //
+        $input = $request->validated();
+
+        $task = $this->task_service->create($input['label'], $input['is_completed'] ?? 0, auth()->user()->id);
+        return new TaskResource($task);
     }
 
     /**
@@ -37,7 +50,9 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        //
+        $this->task_service->checkPermission($task, auth()->user()->id);
+
+        return new TaskResource($task);
     }
 
     /**
@@ -47,9 +62,12 @@ class TaskController extends Controller
      * @param  \App\Models\Task  $task
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Task $task)
+    public function update(TaskUpdateRequest $request, Task $task)
     {
-        //
+        $input = $request->validated();
+
+        $updated_task = $this->task_service->update($task, $input['label'], $input['is_completed'], auth()->user()->id);
+        return new TaskResource($updated_task);
     }
 
     /**
@@ -60,6 +78,7 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        $success = $this->task_service->destroy($task, auth()->user()->id);
+        return response()->json(['success' => $success]);
     }
 }

@@ -37,13 +37,25 @@ class AuthService
             'password' => $password,
         ];
 
-        if(!$token = auth()->attempt($login)){
+        if (!$token = auth()->attempt($login)) {
             throw new LoginInvalidException();
         }
 
         return [
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'expires_in' => auth()->factory()->getTTL(),
+        ];
+    }
+
+    public function refresh()
+    {
+        $token = auth()->refresh();
+
+        return [
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'expires_in' => auth()->factory()->getTTL(),
         ];
     }
 }

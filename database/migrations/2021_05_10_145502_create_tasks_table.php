@@ -18,7 +18,9 @@ class CreateTasksTable extends Migration
             $table->string('label', 255);
             $table->unsignedBigInteger('user_id');
             $table->boolean('is_completed')->default(false);
-            $table->timestamps();
+            // $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->nullable()->useCurrentOnUpdate();
 
             $table->foreign('user_id')->references('id')->on('users')->onUpdate('CASCADE')->onDelete('CASCADE');
         });

@@ -24,5 +24,10 @@ Route::prefix('v1')->group(function () {
     //auth routes
     Route::middleware('auth:api')->group(function(){
         Route::apiResource('tasks', TaskController::class);
+
+        Route::get('me', [AuthController::class, 'me']);
+        Route::get('refresh', [AuthController::class, 'refresh']);
+        Route::get('logout', [AuthController::class, 'logout']);
+        Route::get('invalidate', [AuthController::class, 'invalidate']);
     });
 });
